@@ -1,0 +1,86 @@
+const HatsPage = () => {
+  // Create data
+  const [addingData, setAddingData] = useState({
+    username: "",
+    password: "",
+    status: "create",
+  });
+  const addUser = (e) => {
+    e.preventDefault();
+    console.log(addingData);
+    axios
+      .post(`http://localhost:4000/`, {
+        query: `mutation ($username: String!, $password: String!, $status: String){
+      newUser(username: $username, password: $password, status: $status){
+        token
+      }
+    }`,
+        variables: addingData,
+      })
+      .then((res) => {
+        console.log(res);
+        getAllData();
+      });
+  };
+  // get all data
+  const [getData, setData] = useState([]);
+  const getAllData = () => {
+    axios
+      .post("http://localhost:4000/", {
+        query: `query ($id: Int, $adm: String){
+        Users(UserId: $id, Admin: $adm){
+          UserId,
+          UserName
+        }
+      }`,
+        variables: {
+          id: 1,
+          adm: "please",
+        },
+      })
+      .then((res) => {
+        console.log(res.data);
+        setData(res.data.data.Users);
+      });
+  };
+
+  useEffect(() => {
+    getAllData();
+  }, []);
+
+  return (
+    <div>
+      <h1>Malumot qoshish</h1>
+      <form onSubmit={addUser}>
+        <input
+          type="text"
+          onChange={(e) =>
+            setAddingData({ ...addingData, username: e.target.value })
+          }
+          name="username"
+          placeholder="username"
+        />
+        <input
+          type="text"
+          onChange={(e) =>
+            setAddingData({ ...addingData, password: e.target.value })
+          }
+          name="password"
+          placeholder="password"
+        />
+        <button type="submit">Malumot qoshish</button>
+      </form>
+
+      <h1>Malumotlarni hammasini olish</h1>
+
+      {getData.map((item) => {
+        return (
+          <div>
+            <p> {item.UserId} </p>
+            <p> {item.UserName} </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
